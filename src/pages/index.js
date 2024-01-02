@@ -12,6 +12,7 @@ const pageStyles = {
 const IndexPage = () => {
 
   const inputRef = useRef()
+  const greenDivRef = useRef()
   const [csvData, setCsvData] = useState("")
 
   const handleCsvSubmit = (e) => {
@@ -53,8 +54,9 @@ const IndexPage = () => {
   }
 
   useEffect(() => {
-    console.log(csvData)
     console.log(csvData.length)
+    if(csvData.length > 0) greenDivRef.current.style.display = "block"
+    if(!csvData.length || csvData.length <= 0) greenDivRef.current.style.display = "none"
   })
   
 
@@ -66,6 +68,8 @@ const IndexPage = () => {
       </form>
 
       <CSVLink data={csvData} filename={"dildoinfoforsellingatblackmarketonlynowhitemarketonlyniggamarket.csv"}>Download me</CSVLink>
+
+      <div ref={greenDivRef} style={{width: "200px", height: "100px", backgroundColor: "lime", display: "none"}}></div>
 
     </main>
   )
