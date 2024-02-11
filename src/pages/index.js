@@ -148,15 +148,16 @@ const IndexPage = () => {
         let category = joinedProductCategoryPairs.find(({ h2s }) => findName(h2s, item.title)) ? joinedProductCategoryPairs.find(({ h2s }) => findName(h2s, item.title)).h1 : "undefined"
         let sellPrice = calculateSellPrice(parseFloat(item.wholesale_price), category)
 
+
         return {
           "Handle": item.upc,
           "Title": item.title,
-          "Body (HTML)": item.description,
+          "Body (HTML)": item.description ? item.description.replaceAll(`"`, `'`) : item.description,
           "Vendor": item.brand,
           "Product Category": "",
           "Type": category,
           "Tags": item.category,
-          "Published": "FALSE",
+          "Published": "TRUE",
           "Option1 Name": "",
           "Option1 Value": "",
           "Option2 Name": "",
@@ -169,7 +170,7 @@ const IndexPage = () => {
           "Variant Inventory Qty": "",
           "Variant Inventory Policy": "deny",
           "Variant Fulfillment Service": "manual",
-          "Variant Price": sellPrice,
+          "Variant Price": sellPrice.toFixed(2),
           "Variant Compare At Price": "",
           "Variant Requires Shipping": "TRUE",
           "Variant Taxable": "TRUE",
@@ -199,10 +200,10 @@ const IndexPage = () => {
           "Cost per item": item.wholesale_price,
           "Price / International": "",
           "Compare At Price / International": "",
-          "Status": "draft",
+          "Status": "active",
         }
       })
-      // console.log(jsonOutput);
+      console.log(jsonOutput);
       // console.log(smh);
 
 
@@ -230,7 +231,7 @@ const IndexPage = () => {
   
 
   function renderDownloads() {
-    const chunkSize = 1000;
+    const chunkSize = 5000;
     let chunks = []
     for (let i = 0; i < csvData.length; i += chunkSize) {
         const chunk = csvData.slice(i, i + chunkSize);
