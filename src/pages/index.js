@@ -2,10 +2,8 @@ import * as React from "react"
 import { useRef, useState, useEffect } from "react"
 import Papa from "papaparse"
 import { CSVLink } from "react-csv";
-import JSSoup from 'jssoup';
 
-import parsePage from "../assets/headlineParser";
-
+import smh from "../assets/smh.json"
 
 const pageStyles = {
   color: "#232129",
@@ -19,6 +17,99 @@ const IndexPage = () => {
   const greenDivRef = useRef()
   const [csvData, setCsvData] = useState("")
 
+  function calculateSellPrice(wholesalePrice, category) {
+    let priceGroup1 = [
+      "Women's Lingerie",
+      "Sexy Costumes",
+      "Sexy Accessories",
+      "Fetish Wear",
+      "Club Wear",
+      "Men's Clothing",
+      "Women's Lingerie",
+      "Extreme Bondage Gear",
+      "Restraints",
+      "Medical Play",
+      "Nipple Play",
+      "Sex Machines",
+      "Sex Furniture"
+    ];
+    let priceGroup2 = [
+      "Condoms",
+      "Sex Enhancers",
+      "Sexy Accessories",
+      "Lubricants",
+      "Storage and Toy Care",
+      "Sensual Massage",
+      "Oral Sex Products",
+      "Accessories",
+      "Games & Novelty",
+      "Personal Care",
+      "Clone Your Own",
+      "Books",
+      "Stripper Poles"
+    ];
+
+    if (priceGroup1.includes(category)) {
+
+      if (wholesalePrice > 0 && wholesalePrice <= 9) {
+        return wholesalePrice * 3.292
+      }
+
+      else if (wholesalePrice > 9 && wholesalePrice <= 22) {
+        return wholesalePrice * 2.71
+      }
+
+      else if (wholesalePrice > 22 && wholesalePrice <= 35) {
+        return wholesalePrice * 2.75
+      }
+
+      else if (wholesalePrice > 35 && wholesalePrice <= 50) {
+        return wholesalePrice * 2.7
+      }
+
+      else if (wholesalePrice > 50 && wholesalePrice <= 80) {
+        return wholesalePrice * 2.66
+      }
+
+      else if (wholesalePrice > 80) {
+        return wholesalePrice * 2.2
+      }
+
+      else return wholesalePrice * 2.3
+
+    }
+    else if (priceGroup2.includes(category)) {
+      return wholesalePrice * 2.3
+    }
+    else {
+      if (wholesalePrice > 0 && wholesalePrice <= 9) {
+        return wholesalePrice * 2.1
+      }
+
+      else if (wholesalePrice > 9 && wholesalePrice <= 22) {
+        return wholesalePrice * 1.89
+      }
+
+      else if (wholesalePrice > 22 && wholesalePrice <= 35) {
+        return wholesalePrice * 1.87
+      }
+
+      else if (wholesalePrice > 35 && wholesalePrice <= 50) {
+        return wholesalePrice * 1.87
+      }
+
+      else if (wholesalePrice > 50 && wholesalePrice <= 80) {
+        return wholesalePrice * 1.87
+      }
+
+      else if (wholesalePrice > 80) {
+        return wholesalePrice * 1.87
+      }
+
+      else return wholesalePrice * 2.3
+    }
+  }
+
   const handleCsvSubmit = (e) => {
     e.preventDefault()
     let csv = inputRef.current.files[0]
@@ -31,17 +122,40 @@ const IndexPage = () => {
     // usage example:
 
     reader.onload = function () {
+
+      let joinedProductCategoryPairs = []
+
+      for (let i = 0; i < smh.length; i++) {
+        let newArr = { h1: smh[i][0].h1, h2s: [] }
+        for (let j = 0; j < smh[i].length; j++) {
+          newArr.h2s.push(...smh[i][j].h2s)
+        }
+        joinedProductCategoryPairs.push(newArr)
+      }
+
+      function findName(category, name) {
+        return category.find((item) => item === name)
+      }
+
+
       let jsonData = Papa.parse(reader.result, { header: "true" }).data
 
       let jsonOutput = jsonData.map((item, i) => {
+        // console.log(
+        //   joinedProductCategoryPairs.find(({ h2s }) => findName(h2s, item.title))
+        // )
+
+        let category = joinedProductCategoryPairs.find(({ h2s }) => findName(h2s, item.title)) ? joinedProductCategoryPairs.find(({ h2s }) => findName(h2s, item.title)).h1 : "undefined"
+        let sellPrice = calculateSellPrice(parseFloat(item.wholesale_price), category)
+
         return {
           "Handle": item.upc,
           "Title": item.title,
           "Body (HTML)": item.description,
           "Vendor": item.brand,
           "Product Category": "",
-          "Type": item.category,
-          "Tags": "",
+          "Type": category,
+          "Tags": item.category,
           "Published": "FALSE",
           "Option1 Name": "",
           "Option1 Value": "",
@@ -55,8 +169,8 @@ const IndexPage = () => {
           "Variant Inventory Qty": "",
           "Variant Inventory Policy": "deny",
           "Variant Fulfillment Service": "manual",
-          "Variant Price": parseFloat(item.wholesale_price) * 2,
-          "Variant Compare At Price": parseFloat(item.wholesale_price) * 4,
+          "Variant Price": sellPrice,
+          "Variant Compare At Price": "",
           "Variant Requires Shipping": "TRUE",
           "Variant Taxable": "TRUE",
           "Variant Barcode": "",
@@ -82,13 +196,16 @@ const IndexPage = () => {
           "Variant Image": "",
           "Variant Weight Unit": "g",
           "Variant Tax Code": "",
-          "Cost per item": "",
+          "Cost per item": item.wholesale_price,
           "Price / International": "",
           "Compare At Price / International": "",
           "Status": "draft",
         }
       })
       // console.log(jsonOutput);
+      // console.log(smh);
+
+
 
       // let categories = jsonData.map(item => item.category)
 
@@ -101,418 +218,32 @@ const IndexPage = () => {
     reader.readAsText(csv);
   }
 
-
-
-  useEffect(() => {
-    let allCategories = ["Bullet Vibrators",
-      "Point of Purchase Displays",
-      "For Men",
-      "Party Wear",
-      "Teddies",
-      "X Rated Costumes",
-      "Bra Sets",
-      "Babydolls & Slips",
-      "Pasties, Tattoos & Accessories",
-      "Lubricants",
-      "Condoms",
-      "For Women",
-      "Womens Underwear",
-      "Gag & Joke Gifts",
-      "Dresses",
-      "Bodystockings, Pantyhose & Garters",
-      "Bustiers & Corsets",
-      "Sleep & Lounge",
-      "Womens Tops & Bottoms",
-      "Fetish Clothing",
-      "Bras",
-      "Sexy Costumes",
-      "Lingerie",
-      "Sexy Costume Accessories",
-      "Party Games",
-      "Butt Plugs",
-      "Anal Probes",
-      "Anal Beads",
-      "G-Spot Dildos",
-      "Realistic Dildos & Dongs",
-      "Extreme Dildos",
-      "Huge Dildos",
-      "Huge Butt Plugs",
-      "Double Penetration",
-      "Adjustable & Versatile Cock Rings",
-      "Harness & Dong Sets",
-      "Strapless Strap-ons",
-      "Sexy Wear",
-      "Ball Gags",
-      "Transgender Wear",
-      "Renew Powders",
-      "Batteries & Chargers",
-      "Luxury Cock Rings",
-      "Classic Cock Rings",
-      "Toy Cleaners",
-      "Lubes & Lotions",
-      "Shaving & Intimate Care",
-      "Mens Cock & Ball Gear",
-      "Rope, Tape & Ties",
-      "Crops",
-      "Mens Tops & Bottoms",
-      "Mens Underwear",
-      "Finger Vibrators",
-      "Novelties, Party & Fun",
-      "Serving Ware",
-      "Games for Lovers",
-      "Tongues",
-      "Clit Suckers & Oral Suction",
-      "Penis Pump Accessories",
-      "Lifesize Masturbators",
-      "Pocket Pussies",
-      "Couples Vibrating Cock Rings",
-      "Rabbit Style",
-      "Lickable Body",
-      "Gift Wrapping & Bags",
-      "Harnesses",
-      "Discreet",
-      "Fragrance & Pheromones",
-      "Body Massagers",
-      "Realistic",
-      "Manufacturer Catalogs & Flyers",
-      "Penis Sleeves & Enhancers",
-      " Catalogs, Sales Tools & Promotional Items",
-      "Clit Cuddlers",
-      "G Spot Clit Stimulators",
-      "Modern Vibrators",
-      "Nipple Clamps",
-      "Jewelry",
-      "G Spot",
-      "Electrostimulation",
-      "Moisturizers",
-      "Sex Instruction",
-      "Bondage, Fetish & Kink",
-      "Sex Machines",
-      "Traditional",
-      "Sex Pills",
-      "Chastity & Cock Cages",
-      "Cleaning Wipes",
-      "Shapes, Pillows & Chairs",
-      "Bed & Door",
-      "Kegel Exercisers",
-      "Handcuffs",
-      "Masturbation Sleeves",
-      "Cock Ring Trios",
-      "Anal Douches, Enemas & Hygiene",
-      "Medical Play",
-      "Adult Books",
-      "Body Shapers",
-      "Fleshlight ",
-      "Anal Masturbators",
-      "Adult Candy and Erotic Foods",
-      "Hands Free Vibrators",
-      "Storage",
-      "Vibrating Panties",
-      "Luxury",
-      "Prostate Massagers",
-      "Cock Rings",
-      "Dildos",
-      "Prostate Toys",
-      "Palm Size Massagers",
-      "Double Dongs",
-      "Penis Extensions",
-      "Sexual Enhancers",
-      "Sensual Massage Oils & Lotions",
-      "Ben Wa Balls",
-      "Masturbators",
-      "Couples Cock Rings",
-      "Blindfolds",
-      "Anal Trainer Kits",
-      "Gift Sets",
-      "Kits & Sleeves",
-      "Vibrators",
-      "Massagers",
-      "Sex Swings & Slings",
-      "Collars & Leashes",
-      "Bondage Kits",
-      "Hoods & Goggles",
-      "Hogties",
-      "Spreader Bars",
-      "Extreme",
-      "Porn Star Masturbators",
-      "Blow Job Masturbators",
-      "Penis Pumps",
-      "Hollow Strap-ons",
-      "Double Penetration Cock Rings",
-      "Female",
-      "Liquid Latex",
-      "Shoes & Boots",
-      "Ankle Cuffs",
-      "Wigs",
-      "Barnyard Animals",
-      "Paddles",
-      "Accessories",
-      "Sex Swings, Slings & Pillows",
-      "Floggers",
-      "Whips",
-      "Stimulating Cock Rings",
-      "Whips, Paddles & Ticklers",
-      "Bondage",
-      "Feathers & Ticklers",
-      "Anal Lubricants",
-      "Massage Candles",
-      "Pocket Rockets",
-      "Nipple Pumps",
-      "Slappers & Straps",
-      "Restraints",
-      "Male",
-      "Plus Size Strap-ons",
-      "Oral Sex",
-      "Cuffs",
-      "Stripper Poles",
-      "Men's Toys",
-      "Celebrity & Porn Star",
-      "Ultra Realistic Dolls",
-      "Breast Masturbators",
-      "Comics",
-      "Beauty & Body",
-      "Thigh Cuffs",
-      "Bath Accessories",
-      "Anal Toys",
-      "Porn Star Dildos",
-      "Bath & Shower",
-      "Extreme Bondage",
-      "Strap-ons & Harnesses",
-      "Clothing",
-      "Makeup & Cosmetics",
-      "Sex Education & Instruction",
-      "Sex Dolls",
-      "Transsexual",
-      "Anime",
-      "Nipple Play",
-      "Vac-U-Lock System",
-      "Clone Your Own",
-      "XR Brands",
-      "Games",
-      " New Products",
-      "Penis Enhancers",
-      "Magazines",
-      "Men",
-      "Erotic Fiction & Erotica",
-      "Music & Audio",
-      "Extras"]
-
-    let includedCategories = ["Stimulating Cock Rings",
-      "Vibrators",
-      "Luxury Vibrators",
-      "Classic Vibrators",
-      "Clitoral Stimulation",
-      "Personal Massagers",
-      "Rabbit Vibrators",
-      "Remote Vibrators",
-      "Bullets & Discreet",
-      "G Spot Vibrators",
-      "Dildos",
-      "Porn Star Dildos",
-      "Extreme Dildos",
-      "Realistic Dildos",
-      "Anal Dildos",
-      "Strap-on Dildos & Harnesses",
-      "G Spot Dildos",
-      "Vibrating Dildos",
-      "Couples Toys",
-      "Cock Rings",
-      "Penis Enhancers",
-      "Nipple Play",
-      "Couples Vibrators",
-      "Couples Dildos",
-      "Couples Anal Play",
-      "Bedroom Accessories",
-      "Gift Sets",
-      "Anal Toys",
-      "Butt Plugs",
-      "Prostate Massagers",
-      "Double Penetration Dildos",
-      "Anal Lube",
-      "Anal Trainers",
-      "Anal Beads",
-      "Anal Douches",
-      "Male Masturbators",
-      "Porn Star Masturbators",
-      "Anal Masturbators",
-      "Pocket Pussy",
-      "Blow Job Masturbators",
-      "Sleeves",
-      "Sex Dolls",
-      "Penis Pumps",
-      "Life Sized Masturbators",
-      "Sex Education & Instruction",
-      "Bondage & Kink",
-      "Gags & Blindfolds",
-      "Bondage Kits & Sets",
-      "Chastity Cages",
-      "Whips & Paddles",
-      "Restraints",
-      "Medical Play",
-      "Extreme Bondage Gear",
-      "Nipple Play",
-      "Sex Machines",
-      "Sex Furniture",
-      "Comics",
-      "Condoms & More",
-      "Condoms",
-      "Lubricants",
-      "Sex Enhancers",
-      "Storage and Toy Care",
-      "Sensual Massage",
-      "Oral Sex Products",
-      "Accessories",
-      "Games & Novelty",
-      "Personal Care",
-      "Clone Your Own",
-      "Books",
-      "Stripper Poles",
-      "Magazines",
-      "Lingerie & Clothing",
-      "Music & Audio",
-      "Women's Lingerie",
-      "Sexy Costumes",
-      "Sexy Accessories",
-      "Fetish Wear",
-      "Club Wear",
-      "Men's Clothing",
-      "Condoms",
-      "Lubricants",
-      "Shaving & Intimate Care",
-      "Toy Cleaners",
-      "Lubes & Lotions",
-      "Shoes & Boots",
-      "Sexy Wear",
-      "Lubricants",
-      "Feathers & Ticklers",
-      "Catalogs, Sales Tools & Promotional Items",
-      "Teddies",
-      "X Rated Costumes",
-      "Pasties, Tattoos & Accessories",
-      "Fetish Clothing",
-      "Party Wear",
-      "Massagers",
-      "Hands-Free Vibrators",
-      "Bullet Vibrators",
-      "Dildos (General)",
-      "Porn Star Dildos",
-      "Extreme Dildos",
-      "Realistic Dildos & Dongs",
-      "Anal Dildos",
-      "Plus Size Strap-ons",
-      "G-Spot Dildos",
-      "Couples Vibrating Cock Rings",
-      "Double Dongs",
-      "Sex Swings & Slings",
-      "Gift Sets",
-      "Anal Dildos",
-      "Butt Plugs",
-      "Prostate Massagers",
-      "Double Penetration",
-      "Anal Lubricants",
-      "Anal Beads",
-      "Anal Douches, Enemas & Hygiene",
-      "Pocket Pussies",
-      "Blow Job Masturbators",
-      "Masturbation Sleeves",
-      "Sex Dolls",
-      "Penis Pumps",
-      "Lifesize Masturbators",
-      "Bondage & Kink",
-      "Slappers & Straps",
-      "Bondage Kits",
-      "Feathers & Ticklers",
-      "Restraints",
-      "Extreme Bondage",
-      "Bed & Door",
-      "Lubes & Lotions",
-      "Cleaning Wipes",
-      "Kits & Sleeves",
-      "Erotic Fiction & Erotica",
-      "Lubes & Lotions",
-      "Sex Instruction",
-      "Sexy Wear",
-      "Bra Sets",
-      "Sexy Costumes",
-      "Sexy Costume Accessories",
-      "Shoes & Boots",
-      "Bustiers & Corsets",
-      "Palm-Size Massagers",
-      "Finger Vibrators",
-      "Huge Dildos",
-      "Couples Cock Rings",
-      "Anal Trainer Kits",
-      "Anal Probes",
-      "Fleshlight",
-      "Bondage, Fetish & Kink",
-      "Whips, Paddles & Ticklers",
-      "Slappers & Straps",
-      "Extreme",
-      "Shapes, Pillows & Chairs",
-      "Moisturizers",
-      "Renew Powders",
-      "Extras",
-      "Games",
-      "Moisturizers",
-      "Adult Books",
-      "Lingerie",
-      "Babydolls & Slips",
-      "Sexy Wear",
-      "Accessories",
-      "Wigs",
-      "Womens Tops & Bottoms",
-      "Mens Cock & Ball Gear",
-      "Huge Butt Plugs",
-      "Fleshlight",
-      "Spreader Bars",
-      "Extreme Bondage",
-      "Cleaning Wipes",
-      "Batteries & Chargers",
-      "Anime",
-      "Cleaning Wipes",
-      "Erotic Fiction & Erotica",
-      "Clothing",
-      "Dresses",
-      "Transgender Wear",
-      "Bath Accessories",
-      "Babydolls & Slips",
-      "Sleep & Lounge"]
-    let excludedCategories = []
-
-    function checkExcluded() {
-      // console.log(includedCategories)
-
-      excludedCategories = allCategories.map(item => {
-        if (!includedCategories.includes(item)) return item
-        else return
-      })
-
-      excludedCategories = excludedCategories.filter(item => item !== undefined)
-
-      // console.log(excludedCategories)
-    }
-
-    checkExcluded()
-
-
-  }, [])
-
-  useEffect(() => {
-    fetch("https://wholesale.sextoy.com/collections/luxury-vibrators", {
-      method: "GET",
-    })
-      .then(res => console.log(res.status))
-    // console.log("categories", unique)
-  }, [])
-
-
-
   useEffect(() => {
     // console.log(csvData.length)
     if (csvData.length > 0) greenDivRef.current.style.display = "block"
     if (!csvData.length || csvData.length <= 0) greenDivRef.current.style.display = "none"
   })
 
+  useEffect(() => {
+    console.log(csvData)
+  })
+  
+
+  function renderDownloads() {
+    const chunkSize = 1000;
+    let chunks = []
+    for (let i = 0; i < csvData.length; i += chunkSize) {
+        const chunk = csvData.slice(i, i + chunkSize);
+        chunks.push(chunk)
+    }
+
+    return chunks.map((item, i) => (
+      <div>
+        <CSVLink key={i} data={item} filename={"dildoinfoforsellingatblackmarketonlynowhitemarketonlyniggamarket_" + i + ".csv"}>Download me {i}</CSVLink>
+        <br></br>
+      </div>
+    ))
+  }
 
   return (
     <main style={pageStyles}>
@@ -521,7 +252,9 @@ const IndexPage = () => {
         <button>Upload</button>
       </form>
 
-      <CSVLink data={csvData} filename={"dildoinfoforsellingatblackmarketonlynowhitemarketonlyniggamarket.csv"}>Download me</CSVLink>
+      {renderDownloads()}
+
+      {/* <CSVLink data={csvData} filename={"dildoinfoforsellingatblackmarketonlynowhitemarketonlyniggamarket.csv"}>Download me</CSVLink> */}
 
       <div ref={greenDivRef} style={{ width: "200px", height: "100px", backgroundColor: "lime", display: "none" }}></div>
 
