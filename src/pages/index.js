@@ -146,7 +146,7 @@ const IndexPage = () => {
         // )
 
         let category = joinedProductCategoryPairs.find(({ h2s }) => findName(h2s, item.title)) ? joinedProductCategoryPairs.find(({ h2s }) => findName(h2s, item.title)).h1 : "undefined"
-        let sellPrice = calculateSellPrice(parseFloat(item.wholesale_price), category)
+        let sellPrice = calculateSellPrice(parseFloat(item.wholesale_price), category).toFixed(2)
 
 
         return {
@@ -170,7 +170,7 @@ const IndexPage = () => {
           "Variant Inventory Qty": "",
           "Variant Inventory Policy": "deny",
           "Variant Fulfillment Service": "manual",
-          "Variant Price": sellPrice.toFixed(2),
+          "Variant Price": typeof sellPrice === "string" ? parseFloat(sellPrice) : sellPrice,
           "Variant Compare At Price": "",
           "Variant Requires Shipping": "TRUE",
           "Variant Taxable": "TRUE",
@@ -197,7 +197,7 @@ const IndexPage = () => {
           "Variant Image": "",
           "Variant Weight Unit": "g",
           "Variant Tax Code": "",
-          "Cost per item": item.wholesale_price,
+          "Cost per item": parseFloat(item.wholesale_price),
           "Price / International": "",
           "Compare At Price / International": "",
           "Status": "active",
