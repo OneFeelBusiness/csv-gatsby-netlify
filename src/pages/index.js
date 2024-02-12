@@ -151,7 +151,7 @@ const IndexPage = () => {
 
         return {
           "Handle": item.upc,
-          "Title": item.title,
+          "Title": item.title ? item.title.replaceAll(`"`, `'`) : item.title,
           "Body (HTML)": item.description ? item.description.replaceAll(`"`, `'`) : item.description,
           "Vendor": item.brand,
           "Product Category": "",
