@@ -223,7 +223,7 @@ const IndexPage = () => {
         //   joinedProductCategoryPairs.find(({ h2s }) => findName(h2s, item.title))
         // )
 
-        let category = smh.find(({ h2s }) => findName(h2s, item.title)) ? smh.find(({ h2s }) => findName(h2s, item.title)).h1 : "undefined"
+        let category = smh.find(({ h2s }) => findName(h2s, item.title)) ? smh.find(({ h2s }) => findName(h2s, item.title)).h1 : item.category
         let sellPrice = calculateSellPrice(parseFloat(item.wholesale_price), category).toFixed(2)
 
 
@@ -245,7 +245,7 @@ const IndexPage = () => {
           "Option3 Value": "",
           "Variant SKU": "",
           "Variant Grams": item.weight ? parseFloat(item.weight) * 453.592 : "",
-          "Variant Inventory Tracker": "",
+          "Variant Inventory Tracker": "shopify",
           "Variant Inventory Qty": productInventory.find(invent => invent.upc === item.upc) ? productInventory.find(invent => invent.upc === item.upc).inventory_quantity : 0,
           "Variant Inventory Policy": "deny",
           "Variant Fulfillment Service": "manual",
@@ -419,10 +419,14 @@ const IndexPage = () => {
 
         for (let i = 0; i < productSizes.length; i++) {
           let productCopy = { ...productSizes[i] }
+
+          let productCat = productSizes.find(item => item["Type"] !== "undefined")["Type"] || "undefined"
+
           if (i === 0) {
             productCopy["Option1 Name"] = "Size"
             productCopy["Option1 Value"] = replaceSize(productCopy.Title[productCopy.Title.length - 1])
             productCopy.Title = productCopy.Title.slice(0, productCopy.Title.length - 1).join(" ")
+            productCopy.Type = productCat
 
             bigOutput.push(productCopy)
           }
@@ -445,10 +449,10 @@ const IndexPage = () => {
               "Option3 Value": "",
               "Variant SKU": "",
               "Variant Grams": "",
-              "Variant Inventory Tracker": "",
+              "Variant Inventory Tracker": "shopify",
               "Variant Inventory Qty": productCopy["Variant Inventory Qty"],
-              "Variant Inventory Policy": "",
-              "Variant Fulfillment Service": "",
+              "Variant Inventory Policy": "deny",
+              "Variant Fulfillment Service": "manual",
               "Variant Price": productCopy["Variant Price"],
               "Variant Compare At Price": "",
               "Variant Requires Shipping": "",
@@ -572,7 +576,7 @@ const IndexPage = () => {
 
 
   function renderDownloads() {
-    const chunkSize = 99999999;
+    const chunkSize = 5000;
     let chunks = []
     for (let i = 0; i < csvData.length; i += chunkSize) {
       const chunk = csvData.slice(i, i + chunkSize);
